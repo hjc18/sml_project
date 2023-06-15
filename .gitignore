@@ -1,0 +1,4 @@
+catboost_log/*
+input/predict-student-performance-from-game-play/*
+models/*
+__pycache__
