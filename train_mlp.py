@@ -23,6 +23,9 @@ class CustomDataset(Dataset):
 
 
 model_save = []
+
+import time
+start_time = time.time()
 for group, q_list in feature_engineer.LEVEL_QUESTION.items():
     # prepare input for group "0-4" or "5-12" or "13-22"
     # LEVEL_QUESTION {'0-4': [1, 2, 3], '5-12': [4, 5, 6, 7, 8, 9, 10, 11, 12, 13], '13-22': [14, 15, 16, 17, 18]}  
@@ -46,10 +49,10 @@ for group, q_list in feature_engineer.LEVEL_QUESTION.items():
         model = MLP(input_dim=input_dim, hidden_dim=256)
         train_dataset = CustomDataset(train_q, train_label)
         train_loader = DataLoader(train_dataset, batch_size=128)
-        optim = torch.optim.AdamW(model.parameters(), lr=0.005)
-        scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=1, gamma=0.95)
+        optim = torch.optim.AdamW(model.parameters(), lr=0.001)
+        # scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=1, gamma=0.97)
         criteria = nn.BCELoss()
-        num_epoch = 40
+        num_epoch = 80
         for epoch in range(1, num_epoch):
             # print("current learning rate: {}".format(scheduler.get_last_lr()))
             model.train()
@@ -63,7 +66,7 @@ for group, q_list in feature_engineer.LEVEL_QUESTION.items():
                 running_loss += loss.item()
             epoch_loss = running_loss / len(train_loader)
             print(f"Epoch {epoch+1}/{num_epoch}, Loss: {epoch_loss:.4f}")
-            scheduler.step()
+            # scheduler.step()
             if batch_idx % 100 == 0:
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
@@ -76,6 +79,13 @@ for group, q_list in feature_engineer.LEVEL_QUESTION.items():
             print("Validation F1 score: {}".format(f1))
         # model_save.append(model)
         torch.save(model.state_dict(), f'./models/mlp_model_q{q}.pt')
+
+end_time = time.time()
+# Calculate the elapsed time
+elapsed_time = end_time - start_time
+
+# Print the elapsed time
+print(f"Training took {elapsed_time:.2f} seconds.")
 
 # for i, m in enumerate( model_save ):
 #     torch.save(m.state_dict(), f'./models/mlp_model_q{i}.pt')
